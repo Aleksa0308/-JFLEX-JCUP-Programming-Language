@@ -7,6 +7,7 @@ also used for handling all the errors and parsing trees
 
 
 #EXAMPLE:
+```
 CreateWorld(args);
 	craft
 		craftint x: 15
@@ -22,3 +23,4 @@ CreateWorld(args);
 		else
 		--comment2
 quit.
+```
