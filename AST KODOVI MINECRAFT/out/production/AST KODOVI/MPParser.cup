@@ -1,0 +1,361 @@
+//import section
+
+import java_cup.runtime.*;
+import java.io.*;
+
+//Terminal symbols
+terminal CREATEWORLD, CRAFT, CRAFTINT, CRAFTCHAR, START, QUIT, MINE, SMELT, HMM, TRADE, ELSE;
+terminal ID, CONST, PLUS, MUL, LEFTPAR, RIGHTPAR, DOTDOT, ASSIGN, SEMI, COMMA, DOT;
+
+//Nonterminal symbols
+non terminal Program, NizImena, DeklProm, Blok, NizDekl, Deklaracija, NizNar, Naredba;
+non terminal Ulaz, Izlaz, Dodela, Izraz, PIzraz, FIzraz, IfNar;
+non terminal Type Tip;
+
+
+
+//Grammar
+
+Program ::= CREATEWORLD LEFTPAR NizImena RIGHTPAR SEMI DeklProm Blok DOT 
+		{:
+               System.out.println( "SMENA BROJ 1" );
+            :} 
+          | CREATEWORLD LEFTPAR NizImena RIGHTPAR SEMI DeklProm Blok error:e
+            {:
+               System.out.println( "Nedostaje '.' na kraju programa" );
+               parser.errNo++;
+            :} 
+          | CREATEWORLD LEFTPAR NizImena RIGHTPAR SEMI DeklProm error
+            {:
+            	System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+            		"Telo programa je nekorektno.");
+            	parser.errNo++;
+            :}
+          | CREATEWORLD LEFTPAR NizImena RIGHTPAR SEMI error
+            {:
+            	System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+            		"Nedostaju deklaracije promenljivih.");
+            	parser.errNo++;
+            :}
+          | CREATEWORLD LEFTPAR NizImena RIGHTPAR error
+             {:
+            	System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+            		"Nedostaje ';'.");
+            	parser.errNo++;
+             :}
+          | CREATEWORLD LEFTPAR NizImena error
+            {:
+            	System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+            		"Nedostaje ')'.");
+            	parser.errNo++;
+            :}
+          | CREATEWORLD LEFTPAR error
+            {:
+            	System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+            		"Nedostaju argumenti programa.");
+            	parser.errNo++;
+             :}
+          | CREATEWORLD error
+             {:
+            	System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+            		"Nedostaje '('.");
+            	parser.errNo++;
+             :}
+          | error
+            {:
+            	System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+            		"Nedostaje kljucna rec 'CreateWorld' na pocetku.");
+            	parser.errNo++;
+            :}
+          ;
+
+DeklProm ::= CRAFT NizDekl
+		{:
+               System.out.println( "SMENA BROJ 2" );
+            :} 
+           | CRAFT error
+             {:
+             	System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+             		"Nedostaju deklaracije promenljivih nakon kljucne veci 'craft'.");
+            	parser.errNo++;
+             :}
+           ;
+
+NizDekl ::= NizDekl Deklaracija
+		{:
+               System.out.println( "SMENA BROJ 3" );
+            :}  
+          | Deklaracija
+		{:
+               System.out.println( "SMENA BROJ 4" );
+            :} 
+          ;
+
+Deklaracija ::= NizImena DOTDOT Tip
+		{:
+               System.out.println( "SMENA BROJ 5" );
+            :} 
+              | NizImena DOTDOT error
+                {:
+                   System.out.println( "Greska u liniji " + parser.getLine() + ": " + 
+                   		"Nekorektno ime tipa." );
+            		parser.errNo++;
+                :}
+              | NizImena error
+                {:
+                   System.out.println( "Greska u liniji " + parser.getLine() + ": " + 
+                   		"Nedostaje simbol ':'." );
+            		parser.errNo++;
+                :}
+            
+              ;
+
+NizImena ::= NizImena COMMA ID
+		{:
+               System.out.println( "SMENA BROJ 6" );
+            :} 
+           | NizImena COMMA error
+             {:
+             	System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+             		"Nedostaje ime promenljive nakon simbola ','" );
+            	parser.errNo++;
+             :}
+           | ID
+		{:
+               System.out.println( "SMENA BROJ 7" );
+            :} 
+           ;
+
+Tip ::= CRAFTINT 
+		{:
+               System.out.println( "SMENA BROJ 8" );
+            :} 
+      | CRAFTCHAR
+		{:
+               System.out.println( "SMENA BROJ 9" );
+            :} 
+      ;
+
+Blok ::= START NizNar QUIT
+		{:
+               System.out.println( "SMENA BROJ 10" );
+            :} 
+       | START NizNar error
+         {:
+         	System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+         		"Nezavrsen blok (nedostaje kljucna rec 'quit').");
+            parser.errNo++;
+         :}
+       | START error
+         {:
+         	System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+         		"Telo bloka je nekorektno");
+            parser.errNo++;
+         :}
+       ;
+
+NizNar ::= NizNar SEMI Naredba
+		{:
+               System.out.println( "SMENA BROJ 11" );
+            :}  
+         | NizNar SEMI error 
+           {:
+              System.out.println( "Greska u liniji " + parser.getLine() + ": " + 
+              	"Nedostaje naredba nakon simbola ';'." );
+              parser.errNo++;
+           :}
+         | NizNar error Naredba
+           {:
+              System.out.println( "Greska u liniji " + parser.getLine() + ": " + 
+              	"Nedostaje ';'." );
+              parser.errNo++;
+           :}
+         | Naredba
+		{:
+               System.out.println( "SMENA BROJ 12" );
+            :} 
+         ;
+
+Naredba ::= Ulaz
+		{:
+               System.out.println( "SMENA BROJ 13" );
+            :} 
+          | Izlaz
+		{:
+               System.out.println( "SMENA BROJ 14" );
+            :}  
+          | Dodela
+		{:
+               System.out.println( "SMENA BROJ 15" );
+            :} 
+          | Blok
+		{:
+               System.out.println( "SMENA BROJ 16" );
+            :} 
+          | IfNar
+		{:
+               System.out.println( "SMENA BROJ 17" );
+            :} 
+          ;
+
+Ulaz ::= MINE LEFTPAR ID RIGHTPAR
+		{:
+               System.out.println( "SMENA BROJ 18" );
+            :} 
+       | MINE LEFTPAR ID error
+         {:
+            System.out.println( "Greska u liniji " + parser.getLine() + ": " + 
+            	"Nedostaje ')'.");
+            parser.errNo++;
+         :}
+       | MINE LEFTPAR error
+         {:
+            System.out.println( "Greska u liniji " + parser.getLine() + ": " + 
+            	"Nedostaje ime promenljive.");
+            parser.errNo++;
+         :}
+       | MINE error
+         {:
+            System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+            	"Nedostaje '('.");
+            parser.errNo++;
+         :}
+      ;
+         
+
+Izlaz ::= SMELT LEFTPAR Izraz RIGHTPAR
+		{:
+               System.out.println( "SMENA BROJ 19" );
+            :} 
+        | SMELT LEFTPAR  Izraz error
+          {:
+             System.out.println( "Greska u liniji " + parser.getLine() + ": " + 
+             	"Nedostaje ')'.");
+             parser.errNo++;
+          :}
+        | SMELT LEFTPAR error
+          {:
+             System.out.println( "Greska u liniji " + parser.getLine() + ": " + 
+             	"Nekorektan izraz.");
+             parser.errNo++;
+          :}
+        | SMELT error
+          {:
+             System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+             	"Nedostaje '('.");
+             parser.errNo++;
+          :}
+        ;
+          
+
+Dodela ::= ID ASSIGN Izraz
+		{:
+               System.out.println( "SMENA BROJ 20" );
+            :} 
+         | ID ASSIGN error
+           {:
+              System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+              	"Nekorektan izraz.");
+              parser.errNo++;
+           :}
+         | ID error
+           {:
+              System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+              	"Nedostaje '->'.");
+              parser.errNo++;
+           :}
+         ;
+
+Izraz ::= Izraz PLUS PIzraz
+		{:
+               System.out.println( "SMENA BROJ 21" );
+            :}  
+        | Izraz PLUS error
+          {:
+             System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+             	"Nekorektan izraz.");
+             parser.errNo++;
+          :}
+        | PIzraz
+		{:
+               System.out.println( "SMENA BROJ 22" );
+            :} 
+        ;
+
+PIzraz ::= PIzraz MUL FIzraz
+		{:
+               System.out.println( "SMENA BROJ 23" );
+            :} 
+         | PIzraz MUL error
+           {:
+              System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+              	"Nekorektan izraz.");
+              parser.errNo++;
+           :}  
+         | FIzraz
+		{:
+               System.out.println( "SMENA BROJ 24" );
+            :} 
+         ;
+
+FIzraz ::= ID
+		{:
+               System.out.println( "SMENA BROJ 25" );
+            :} 
+         | CONST
+		{:
+               System.out.println( "SMENA BROJ 26" );
+            :} 
+         | LEFTPAR Izraz RIGHTPAR
+		{:
+               System.out.println( "SMENA BROJ 27" );
+            :} 
+         | LEFTPAR Izraz error
+           {:
+              System.out.println( "Greska u liniji " + parser.getLine() + ": " + 
+              	"Nedostaje ')'.");
+              parser.errNo++;
+           :}
+         | LEFTPAR error
+           {:
+              System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+              	"Nekorektan izraz.");
+              parser.errNo++;
+           :}
+         ;
+
+IfNar ::= HMM Izraz TRADE Naredba ELSE Naredba
+		{:
+               System.out.println( "SMENA BROJ 28" );
+            :} 
+        | HMM Izraz TRADE Naredba ELSE error
+          {:
+             System.out.println( "Greska u liniji " + parser.getLine() + ": " + 
+             	"Nedostaje naredba u 'else' grani.");
+             parser.errNo++;
+          :}
+        | HMM Izraz TRADE Naredba error
+          {:
+             System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+             	"Nedostaje kljucna rec 'else'.");
+             parser.errNo++;
+          :}
+        | HMM Izraz TRADE error
+          {:
+             System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+             	"Nedostaje naredba u 'trade' grani.");
+             parser.errNo++;
+          :}
+        | HMM Izraz error
+          {:
+             System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+             	"Nedostaje kljucna rec 'trade'.");
+             parser.errNo++;
+          :}
+        | HMM error
+          {:
+             System.out.println("Greska u liniji " + parser.getLine() + ": " + 
+             	"Nedostaje '('.");
+             parser.errNo++;
+          :}
+        ;
